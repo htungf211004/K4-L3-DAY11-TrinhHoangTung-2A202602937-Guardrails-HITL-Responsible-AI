@@ -62,11 +62,21 @@ async def part3_assignment_suite():
         build_observability,
         run_assignment_suite,
     )
+    from agents.agent import create_blue_agent
 
     try:
         plugins = build_production_plugins(use_llm_judge=False)
         audit, monitor = build_observability()
-        pipeline = {"plugins": plugins, "audit": audit, "monitor": monitor}
+        # Blue's OpenAIRunner owns the OpenRouter call. Guardrail plugins are
+        # evaluated explicitly by run_assignment_suite with the real user ID.
+        agent, runner = create_blue_agent(plugins=[])
+        pipeline = {
+            "plugins": plugins,
+            "audit": audit,
+            "monitor": monitor,
+            "agent": agent,
+            "runner": runner,
+        }
         result = await run_assignment_suite(pipeline)
         print("Suite finished.")
         print("Wrote outputs under repo outputs/")
@@ -78,6 +88,18 @@ async def part3_assignment_suite():
             "  python src/main.py --part 3"
         )
         print(f"Detail: {e}")
+        return None
+    except Exception as e:
+        status = getattr(e, "status_code", None)
+        status_text = f" HTTP {status}" if status else ""
+        print(
+            "Live OpenRouter call failed; outputs/results.json was not updated. "
+            f"{type(e).__name__}{status_text}: {e}"
+        )
+        print(
+            "Fix OpenRouter model/key availability, then rerun "
+            "python src/main.py --part 3."
+        )
         return None
 
 
@@ -92,7 +114,16 @@ async def part4_attacks():
     from attacks.attacks import run_attacks, save_attack_results
 
     red_default, red_default_runner = create_red_agent_default()
-    await test_agent(red_default, red_default_runner)
+    try:
+        await test_agent(red_default, red_default_runner)
+    except Exception as exc:
+        # This is an informational smoke request, not part of the attack suite.
+        # A transient provider/network failure should not prevent the required
+        # per-prompt runner from recording its results (including errors).
+        print(
+            "Quick test unavailable; continuing with the adversarial prompts: "
+            f"{type(exc).__name__}: {exc}"
+        )
 
     print("\n--- Attacks on Red ---")
     unsafe_results = await run_attacks(
