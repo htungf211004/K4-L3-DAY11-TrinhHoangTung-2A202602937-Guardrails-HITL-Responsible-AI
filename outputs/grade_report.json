@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T08:59:55.185581+00:00",
+  "generated_at": "2026-09-26T09:02:36.175297+00:00",
   "submission_dir": "C:\\VinAI\\K4-L3-DAY11-TrinhHoangTung-2A202602937-Guardrails-HITL-Responsible-AI",
   "technical_failure": false,
   "packaging": {
@@ -47,7 +47,7 @@
   },
   "public_tests": {
     "returncode": 0,
-    "stdout": "...........                                                              [100%]\n11 passed in 1.58s\n",
+    "stdout": "...........                                                              [100%]\n11 passed in 1.38s\n",
     "stderr": "",
     "technical_failure": false
   },
